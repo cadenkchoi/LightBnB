@@ -23,7 +23,8 @@ const getUserWithEmail = function(email) {
   SELECT *
   FROM users
   WHERE email = $1
-`,[email]).then(resp => resp.rows[0]);
+`,[email])
+.then(res => res.rows[0]);
 };
 exports.getUserWithEmail = getUserWithEmail;
 
@@ -37,7 +38,7 @@ const getUserWithId = function(id) {
   SELECT *
   FROM users
   WHERE id = $1;`,[id])
-  .then(resp => resp.rows[0]);
+  .then(res => res.rows[0]);
 }
 exports.getUserWithId = getUserWithId;
 
@@ -52,7 +53,7 @@ const addUser =  function(user) {
     INSERT INTO users (name, email, password)
     VALUES ($1, $2, $3)
     RETURNING *; `,[user.name, user.email, user.password])
-  .then(resp => resp.rows[0]);
+  .then(res => res.rows[0]);
 }
 exports.addUser = addUser;
 
