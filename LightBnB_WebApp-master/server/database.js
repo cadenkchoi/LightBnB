@@ -13,6 +13,7 @@ const pool = new Pool({
 
 /// Users
 
+
 /**
  * Get a single user from the database given their email.
  * @param {String} email The email of the user.
@@ -23,10 +24,16 @@ const getUserWithEmail = function(email) {
   SELECT *
   FROM users
   WHERE email = $1
-`,[email])
-.then(res => res.rows[0]);
+  `,[email])
+  .then(res => { if (res.rows.length === 0) {
+    return Promise.resolve(null)
+    } else {
+      return Promise.resolve(res.rows[0])
+    }
+  })
 };
 exports.getUserWithEmail = getUserWithEmail;
+
 
 /**
  * Get a single user from the database given their id.
@@ -65,7 +72,21 @@ exports.addUser = addUser;
  * @return {Promise<[{}]>} A promise to the reservations.
  */
 const getAllReservations = function(guest_id, limit = 10) {
-  return getAllProperties(null, 2);
+  return pool.query(
+    `
+    SELECT properties.*, reservations.*,
+    avg(property_reviews.rating) AS average_rating
+    FROM reservations
+    LEFT JOIN properties ON properties.id = reservations.property_id
+    LEFT JOIN property_reviews ON properties.id = property_reviews.property_id
+    WHERE reservations.guest_id = $1 AND end_date < now()::date
+    GROUP BY properties.id, reservations.id
+    ORDER BY reservations.start_date
+    LIMIT $2;
+    `,
+    [guest_id, limit]
+  )
+  .then((res) => res.rows)
 }
 exports.getAllReservations = getAllReservations;
 
